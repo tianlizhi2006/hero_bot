@@ -1,0 +1,41 @@
+# Keil MDK build output
+/MDK-ARM/ctrl_all/
+*.o
+*.obj
+*.d
+*.crf
+*.axf
+*.elf
+*.hex
+*.bin
+*.lnp
+*.map
+*.dep
+*.iex
+*.lst
+*.omf
+*.plg
+*.rpt
+*.tra
+*.__i
+
+# Other common build directories
+/Debug/
+/Release/
+/build/
+/out/
+/cmake-build-*/
+
+# Keil/VS Code machine-specific state and logs
+/MDK-ARM/*.uvguix.*
+/MDK-ARM/*.uvgui.*
+/MDK-ARM/.vscode/
+*.log
+*.lock
+JLinkLog.txt
+
+# Temporary and backup files
+*.bak
+*.tmp
+*.temp
+*~
