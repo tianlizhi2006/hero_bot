@@ -163,6 +163,7 @@ void chassis_control_step(void)
     float gimbal_right;
     float sin_yaw;
     float cos_yaw;
+    float rotate_weight;
     //安全处理
     if ((chassis_fdcan == NULL) || !remote_control_process(&remote_command))
     {
@@ -186,7 +187,11 @@ void chassis_control_step(void)
         //利用旋转矩阵，把云台坐标系下的前后左右速度转换为底盘坐标系下的前后左右速度
         command.forward = cos_yaw * gimbal_forward - sin_yaw * gimbal_right;
         command.right = sin_yaw * gimbal_forward + cos_yaw * gimbal_right;
-        command.rotate = CHASSIS_GYRO_ROTATE_RADPS;
+        //平移输入越大，旋转权重越低
+        rotate_weight = 1.0f - (fabsf(remote_command.forward) + fabsf(remote_command.horizontal)) /
+                               CHASSIS_GYRO_WEIGHT_DIVISOR;
+        if (rotate_weight < CHASSIS_GYRO_MIN_ROTATE_WEIGHT) rotate_weight = CHASSIS_GYRO_MIN_ROTATE_WEIGHT;
+        command.rotate = CHASSIS_GYRO_ROTATE_RADPS * rotate_weight;
     }
     //normal mode分支
     else
