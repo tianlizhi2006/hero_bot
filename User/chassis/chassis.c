@@ -2,9 +2,11 @@
 
 #include <math.h>
 
+#include "chassis_power_control.h"
 #include "dm3519.h"
 #include "dm6220.h"
 #include "pid.h"
+#include "power_board.h"
 #include "remote_control.h"
 
 typedef struct
@@ -59,7 +61,9 @@ static void chassis_kinematics_solve(const chassis_command_t *command, float tar
 // 使用速度反馈计算力矩，并给四个电机分别发送MIT控制帧
 static void chassis_motor_control(const float target[DM3519_MOTOR_COUNT])
 {
-    float torque;
+    float requested_torque[DM3519_MOTOR_COUNT];
+    float limited_torque[DM3519_MOTOR_COUNT];
+    float motor_speed[DM3519_MOTOR_COUNT];
     float difference;
     bool motors_ready = true;
     uint8_t i;
@@ -86,7 +90,7 @@ static void chassis_motor_control(const float target[DM3519_MOTOR_COUNT])
         return;
     }
     
-    //依次处理四个电机
+    // 先计算四个底盘电机的原始力矩
     for (i = 0U; i < DM3519_MOTOR_COUNT; ++i)
     {
         // 每2ms最多改变0.40rad/s，减小启动和换向冲击
@@ -96,8 +100,17 @@ static void chassis_motor_control(const float target[DM3519_MOTOR_COUNT])
         else if (difference < -CHASSIS_TARGET_SLEW_RADPS) motor_target_velocity[i] -= CHASSIS_TARGET_SLEW_RADPS;
         else motor_target_velocity[i] = target[i];
         // 输入目标速度和反馈速度，函数返回MIT力矩
-        torque = PID_Calculate(&motor_speed_pid[i], motor_target_velocity[i], dm3519_motor[i].velocity);
-        (void)dm3519_send_mit(chassis_fdcan, i + DM3519_FIRST_SLAVE_ID, 0.0f, 0.0f, 0.0f, 0.0f, torque);
+        motor_speed[i] = dm3519_motor[i].velocity;
+        requested_torque[i] = PID_Calculate(&motor_speed_pid[i], motor_target_velocity[i], motor_speed[i]);
+    }
+
+    // 根据功率模型和功率板Pout统一限制四轮力矩
+    chassis_power_control_apply(requested_torque, motor_speed, limited_torque);
+
+    for (i = 0U; i < DM3519_MOTOR_COUNT; ++i)
+    {
+        (void)dm3519_send_mit(chassis_fdcan, i + DM3519_FIRST_SLAVE_ID,
+                              0.0f, 0.0f, 0.0f, 0.0f, limited_torque[i]);
     }
 }
 
@@ -105,9 +118,11 @@ bool chassis_init(FDCAN_HandleTypeDef *hfdcan)
 {
     uint8_t i;
 
+    if (power_board_can_init(hfdcan) != HAL_OK) return false;
     if (dm3519_can_init(hfdcan) != HAL_OK) return false;
 
     chassis_fdcan = hfdcan;
+    chassis_power_control_init();
     for (i = 0U; i < DM3519_MOTOR_COUNT; ++i)
     {
         PID_Init(&motor_speed_pid[i], motor_speed_kp[i], CHASSIS_SPEED_PID_KI, CHASSIS_SPEED_PID_KD, CHASSIS_TORQUE_MAX, CHASSIS_INTEGRAL_MAX);
@@ -119,6 +134,8 @@ bool chassis_init(FDCAN_HandleTypeDef *hfdcan)
 void chassis_stop(void)
 {
     uint8_t i;
+
+    chassis_power_control_reset();
 
     for (i = 0U; i < DM3519_MOTOR_COUNT; ++i)
     {

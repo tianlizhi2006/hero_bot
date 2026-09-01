@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_PWR_LDO_SUPPLY,USE_HAL_DRIVER,STM32H723xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/RTOS2/Include;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;..\User\BMI088;..\User\bsp_rc;..\User\chassis;..\User\DM3519;..\User\DM6220;..\User\gimbal;..\User\IMU_can;..\User\M3508;..\User\PID;..\User\remote</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/RTOS2/Include;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;..\User\BMI088;..\User\bsp_rc;..\User\chassis;..\User\DM3519;..\User\DM6220;..\User\gimbal;..\User\IMU_can;..\User\M3508;..\User\PID;..\User\power_board;..\User\power_control;..\User\remote</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -703,6 +703,36 @@
               <FileName>dm3519.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\User\DM3519\dm3519.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>power_board</GroupName>
+          <Files>
+            <File>
+              <FileName>power_board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\power_board\power_board.c</FilePath>
+            </File>
+            <File>
+              <FileName>power_board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\User\power_board\power_board.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>power_control</GroupName>
+          <Files>
+            <File>
+              <FileName>chassis_power_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\power_control\chassis_power_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>chassis_power_control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\User\power_control\chassis_power_control.h</FilePath>
             </File>
           </Files>
         </Group>
