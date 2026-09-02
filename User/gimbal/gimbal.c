@@ -16,6 +16,7 @@ static pid_t pitch_speed_pid;
 static bool pitch_target_ready;
 static float pitch_target_angle;
 
+
 //角度映射，处理跨越 ±180°的问题
 static float normalize_angle(float angle)
 {
@@ -79,7 +80,7 @@ bool gimbal_yaw_init(FDCAN_HandleTypeDef *motor_fdcan, FDCAN_HandleTypeDef *imu_
 
 void gimbal_yaw_control_step(void)
 {
-    IMU_CAN_Data_t imu;
+    static IMU_CAN_Data_t imu;
     float angle_error;
     float speed_target;
     float torque;
@@ -149,12 +150,15 @@ void gimbal_pitch_control_step(void)
         pitch_target_ready = true;
     }
     
-    //把遥控器的速度输入积分成角度，拉满摇杆速度为30度/秒
+    //把遥控器的速度输入积分成角度，拉满摇杆速度为15度/秒
     pitch_target_angle = limit_pitch_angle(pitch_target_angle + remote_command.pitch * GIMBAL_PITCH_RC_MAX_SPEED_DPS *
                                            ((float)GIMBAL_CONTROL_TIME_MS / 1000.0f));
     //PID位置环速度环，双环控制
     speed_target = PID_Calculate(&pitch_position_pid, pitch_target_angle, pitch_angle);
     current = PID_Calculate(&pitch_speed_pid, speed_target, (float)m3508_pitch_motor.speed_rpm);
+    //到达机械限位后禁止继续向外输出
+    if (((pitch_angle <= GIMBAL_PITCH_HARD_MIN_ANGLE) && (current > 0.0f)) ||
+        ((pitch_angle >= GIMBAL_PITCH_HARD_MAX_ANGLE) && (current < 0.0f))) current = 0.0f;
     //发送电流
     (void)m3508_set_current((int16_t)current);
 }

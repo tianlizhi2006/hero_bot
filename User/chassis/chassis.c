@@ -193,7 +193,7 @@ void chassis_control_step(void)
         if (rotate_weight < CHASSIS_GYRO_MIN_ROTATE_WEIGHT) rotate_weight = CHASSIS_GYRO_MIN_ROTATE_WEIGHT;
         command.rotate = CHASSIS_GYRO_ROTATE_RADPS * rotate_weight;
     }
-    //normal mode分支
+    //普通模式分支
     else
     {
         command.forward = remote_command.forward * CHASSIS_MAX_TRANSLATE_MPS;
